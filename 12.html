@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>درس ناطق تفاعلي - المفرد والجمع (Singular & Plural)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f7fafc;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .en-font {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        /* إصبع التأشير التعليمي */
+        .pointer-hand {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+            pointer-events: none;
+        }
+
+        /* نبض ناعم وثابت في مكان الكلمة دون حركة بين الحروف */
+        @keyframes gentle-tap {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-7px) scale(1.08); }
+        }
+        .tapping {
+            animation: gentle-tap 0.75s ease-in-out infinite;
+        }
+
+        /* إطار التمييز النيون عند النطق */
+        .reading-active {
+            position: relative;
+            background-color: #fef08a !important; /* Yellow-200 */
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4), 0 4px 12px rgba(0,0,0,0.08);
+            transform: scale(1.03);
+            transition: all 0.25s ease;
+        }
+
+        /* مظهر ورقة الدرس الأصلية */
+        .poster-sheet {
+            box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* تمييز حروف الإضافة es */
+        .es-highlight {
+            color: #d946ef; /* بنفسجي وردي مطابق للبوستر */
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4 text-slate-800">
+
+    <!-- شريط التحكم العلوي -->
+    <header class="w-full max-w-4xl bg-white/95 backdrop-blur rounded-2xl shadow-md p-3 sm:p-4 mb-4 sm:mb-6 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-400 text-amber-950 font-black flex items-center justify-center text-xl shadow-sm">ES</span>
+            <div>
+                <h1 class="text-lg sm:text-xl font-black text-slate-800">الدرس الناطق التفاعلي: المفرد والجمع</h1>
+                <p class="text-xs sm:text-sm text-slate-500 font-medium">المؤشر يثبت عند الكلمة المقروءة بالإنجليزية حصراً</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <button id="btnPlayAll" onclick="playWholeLesson()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-all shadow hover:shadow-lg active:scale-95">
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>قراءة الدرس كاملاً</span>
+            </button>
+            <button id="btnToggleAnswers" onclick="toggleAllAnswers()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-all shadow hover:shadow-lg active:scale-95">
+                <svg class="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span id="btnAnswersText">إظهار حلول الجمع</span>
+            </button>
+            <button onclick="stopVoicePlayback()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-2 rounded-xl text-sm transition active:scale-95">
+                إيقاف ⏹
+            </button>
+        </div>
+    </header>
+
+    <!-- إشعار تشغيل صوتي وحالة القراءة -->
+    <div id="statusBadge" class="hidden max-w-md w-full bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2 rounded-xl mb-3 text-center text-sm font-bold animate-pulse shadow-sm">
+        🔊 جاري نطق الكلمة المحددة بالإصبع...
+    </div>
+
+    <!-- لوحة البوستر الرئيسية (تصميم عالي الدقة مطابق للأصل بالكامل) -->
+    <main id="posterContainer" class="relative w-full max-w-4xl bg-white rounded-3xl p-4 sm:p-8 poster-sheet border-4 border-amber-100 overflow-hidden">
+        
+        <!-- خلفية زخرفية ناعمة تطابق أصل البوستر -->
+        <div class="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(#fde047_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+        <!-- الشارة العلوية اليسرى Top Grammar 1 -->
+        <div class="relative z-10 flex justify-between items-start mb-2">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-dashed border-amber-600 bg-amber-50 flex flex-col items-center justify-center text-center shadow-inner">
+                <span class="en-font font-extrabold text-xs sm:text-sm text-slate-800 leading-tight">Top</span>
+                <span class="en-font font-bold text-[10px] sm:text-xs text-slate-600">Grammar</span>
+                <span class="en-font font-black text-sm text-amber-700 leading-none">1</span>
+            </div>
+
+            <!-- العنوان الرئيسي: المفرد والجمع (Singular & Plural) -->
+            <div class="flex-1 text-center px-2">
+                <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight drop-shadow-sm">المفرد والجمع</h2>
+                <h3 class="en-font text-2xl sm:text-3xl font-extrabold mt-1 tracking-wide">
+                    (<span class="text-pink-500">S</span><span class="text-amber-500">i</span><span class="text-emerald-500">n</span><span class="text-cyan-500">g</span><span class="text-blue-500">u</span><span class="text-indigo-500">l</span><span class="text-purple-500">a</span><span class="text-rose-500">r</span> 
+                    <span class="text-slate-700">&</span> 
+                    <span class="text-emerald-500">P</span><span class="text-blue-500">l</span><span class="text-yellow-500">u</span><span class="text-pink-500">r</span><span class="text-purple-500">a</span><span class="text-cyan-500">l</span>)
+                </h3>
+            </div>
+            
+            <div class="w-16 sm:w-20"></div> <!-- موازن هندسي -->
+        </div>
+
+        <!-- غيمة قاعدة الجمع: إذا انتهى الاسم بـ زود es -->
+        <div class="relative z-10 my-4 bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 border-2 border-purple-200 rounded-3xl p-3 sm:p-5 text-center shadow-sm">
+            <div class="text-lg sm:text-2xl font-black text-slate-800 flex items-center justify-center flex-wrap gap-2">
+                <span>إذا انتهى الاسم بـ (</span>
+                <span class="en-font text-rose-600 font-extrabold text-xl sm:text-3xl tracking-wide">s - ss - sh - ch - o - x</span>
+                <span>) نزود</span>
+                <span class="en-font text-pink-600 font-black text-2xl sm:text-3xl bg-pink-100 px-3 py-0.5 rounded-xl border border-pink-300">es</span>
+            </div>
+            <p class="en-font text-sm sm:text-lg text-slate-700 font-semibold mt-1">
+                If the noun ends with (<span class="text-rose-600 font-bold">s, ss, sh, ch, o, x</span>) we add <span class="text-pink-600 font-black">es</span>
+            </p>
+        </div>
+
+        <!-- جدول الكلمات والصور (نفس عناصر البوستر بدقة تامة) -->
+        <div class="relative z-10 border-2 border-slate-700 rounded-2xl overflow-hidden bg-white shadow-sm mt-4">
+            
+            <!-- ترويسة الجدول -->
+            <div class="grid grid-cols-2 bg-[#fde047]/40 border-b-2 border-slate-700 text-center font-bold text-slate-900 py-2 sm:py-3 text-lg sm:text-2xl">
+                <div class="border-l-2 border-slate-700 flex items-center justify-center gap-2">
+                    <span class="en-font font-extrabold">Plural</span>
+                    <span class="text-slate-600 text-base sm:text-xl font-medium">(جمع)</span>
+                </div>
+                <div class="flex items-center justify-center gap-2">
+                    <span class="en-font font-extrabold">Singular</span>
+                    <span class="text-slate-600 text-base sm:text-xl font-medium">(مفرد)</span>
+                </div>
+            </div>
+
+            <!-- صفوف الكلمات -->
+            <div id="wordsTable" class="divide-y-2 divide-slate-700">
+                <!-- سيتم ملؤها عبر الجافاسكريبت بكافة بيانات الصور الأصلية والنطق -->
+            </div>
+        </div>
+
+        <!-- تذييل الصفحة مطابق للبوستر -->
+        <footer class="relative z-10 mt-6 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between text-slate-600 text-sm sm:text-base font-semibold">
+            <div class="en-font text-slate-800 font-bold">Mrs. Engy Moris</div>
+            <div class="w-10 h-10 rounded-full border border-slate-400 bg-amber-50 flex items-center justify-center font-bold text-slate-800 shadow-sm">
+                12
+            </div>
+            <div class="flex items-center gap-1">
+                <span class="en-font font-black text-rose-500 text-lg">TOP</span>
+                <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">كتاب القواعد</span>
+            </div>
+        </footer>
+
+        <!-- عنصر مؤشر الإصبع التعليمي عالي الدقة (SVG مصمم باحتراف) -->
+        <div id="pointerHand" class="pointer-hand fixed z-50 opacity-0 pointer-events-none transform -translate-x-1/2 -translate-y-2" style="width: 52px; height: 52px;">
+            <svg viewBox="0 0 64 64" fill="none" class="w-full h-full filter drop-shadow-[0_8px_10px_rgba(0,0,0,0.35)]">
+                <!-- اليد مع إصبع السبابة يشير للأعلى والكلمة دون حركة أفقية -->
+                <path d="M28 8C28 5.79086 29.7909 4 32 4C34.2091 4 36 5.79086 36 8V30H37.5C39.433 30 41 31.567 41 33.5C41 34.0247 40.8847 34.5225 40.6782 34.9702C42.2598 35.6179 43.375 37.1772 43.375 39C43.375 39.7397 43.1472 40.4262 42.7587 40.9935C44.1378 41.7779 45.0625 43.2798 45.0625 45C45.0625 47.7614 42.8239 50 40.0625 50H33.25C26.5 50 20.5 44 19 37.5L16.2 27.8C15.6 25.7 17.2 23.6 19.4 23.6C20.8 23.6 22 24.5 22.5 25.8L25 32V8C25 5.79086 26.7909 4 29 4" fill="#fbbf24" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- كفة اليد التحتية -->
+                <path d="M25 32V8C25 5.79086 26.7909 4 29 4C31.2091 4 33 5.79086 33 8V30" fill="#fde68a"/>
+                <!-- بريق للإصبع -->
+                <circle cx="31" cy="9" r="1.5" fill="#ffffff"/>
+                <!-- نقطة تركيز التوجيه (Spot marker) -->
+                <circle cx="31" cy="1" r="3" fill="#ef4444" class="animate-ping opacity-75"/>
+            </svg>
+        </div>
+
+    </main>
+
+    <!-- دليل تفاعلي سريع للمتعلم وولي الأمر -->
+    <div class="w-full max-w-4xl mt-4 bg-white/80 rounded-2xl p-4 border border-slate-200 text-xs sm:text-sm text-slate-600 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">💡</span>
+            <span>اضغط على أي كلمة مفرد أو جمع لسماع النطق الإنجليزي الدقيق مع وقوف الإصبع فوقها مباشرة.</span>
+        </div>
+        <div class="flex items-center gap-3 font-semibold text-slate-500">
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 bg-yellow-200 border border-amber-400 rounded"></span> كلمة مقروءة</span>
+            <span class="inline-flex items-center gap-1"><span class="text-pink-600 font-bold">es</span> حروف الجمع المضافة</span>
+        </div>
+    </div>
+
+    <script>
+        /* ========================================================
+           بيانات الدرس بالكامل مطابقة للبوستر المرفق بنسبة 100%
+           نفس الكلمات، الترتيب، الصور والجمع
+        ======================================================== */
+        const lessonItems = [
+            {
+                id: 1,
+                singularWord: "box",
+                pluralWord: "boxes",
+                ruleEnding: "x",
+                // صندوق كرتوني بني مطابق للبوستر
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 64 64"><polygon points="32,4 58,18 32,32 6,18" fill="#d97706"/><polygon points="6,18 32,32 32,60 6,46" fill="#b45309"/><polygon points="58,18 32,32 32,60 58,46" fill="#92400e"/><line x1="32" y1="4" x2="32" y2="32" stroke="#78350f" stroke-width="1.5"/><line x1="6" y1="18" x2="58" y2="18" stroke="#78350f" stroke-width="1.5"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-10 h-10" viewBox="0 0 64 64"><polygon points="32,4 58,18 32,32 6,18" fill="#d97706"/><polygon points="6,18 32,32 32,60 6,46" fill="#b45309"/><polygon points="58,18 32,32 32,60 58,46" fill="#92400e"/></svg>
+                        <svg class="w-10 h-10" viewBox="0 0 64 64"><polygon points="32,4 58,18 32,32 6,18" fill="#d97706"/><polygon points="6,18 32,32 32,60 6,46" fill="#b45309"/><polygon points="58,18 32,32 32,60 58,46" fill="#92400e"/></svg>
+                    </div>`,
+                showAnswerByDefault: true
+            },
+            {
+                id: 2,
+                singularWord: "Watch",
+                pluralWord: "Watches",
+                ruleEnding: "ch",
+                // ساعة يد بسوار بني ومينا دائرية
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 64 64"><rect x="26" y="2" width="12" height="60" rx="3" fill="#854d0e"/><circle cx="32" cy="32" r="16" fill="#fffbeb" stroke="#713f12" stroke-width="3"/><circle cx="32" cy="32" r="13" fill="#ffffff"/><polyline points="32,24 32,32 37,32" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="32" r="2" fill="#ef4444"/><rect x="47" y="30" width="3" height="4" rx="1" fill="#713f12"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><rect x="26" y="2" width="12" height="60" rx="3" fill="#854d0e"/><circle cx="32" cy="32" r="15" fill="#fffbeb" stroke="#713f12" stroke-width="3"/><polyline points="32,24 32,32 36,32" stroke="#1e293b" stroke-width="2.5"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><rect x="26" y="2" width="12" height="60" rx="3" fill="#854d0e"/><circle cx="32" cy="32" r="15" fill="#fffbeb" stroke="#713f12" stroke-width="3"/><polyline points="32,24 32,32 36,32" stroke="#1e293b" stroke-width="2.5"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><rect x="26" y="2" width="12" height="60" rx="3" fill="#854d0e"/><circle cx="32" cy="32" r="15" fill="#fffbeb" stroke="#713f12" stroke-width="3"/><polyline points="32,24 32,32 36,32" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    </div>`,
+                showAnswerByDefault: true
+            },
+            {
+                id: 3,
+                singularWord: "bus",
+                pluralWord: "buses",
+                ruleEnding: "s",
+                // حافلة مدرسية صفراء
+                singularSvg: `<svg class="w-14 h-11" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><rect x="10" y="14" width="10" height="10" rx="2" fill="#bae6fd" stroke="#0284c7"/><rect x="24" y="14" width="10" height="10" rx="2" fill="#bae6fd" stroke="#0284c7"/><rect x="38" y="14" width="10" height="10" rx="2" fill="#bae6fd" stroke="#0284c7"/><circle cx="18" cy="38" r="6" fill="#1e293b"/><circle cx="18" cy="38" r="2.5" fill="#94a3b8"/><circle cx="50" cy="38" r="6" fill="#1e293b"/><circle cx="50" cy="38" r="2.5" fill="#94a3b8"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1 items-center">
+                        <svg class="w-9 h-7" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>
+                        <svg class="w-9 h-7" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>
+                        <svg class="w-9 h-7" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 4,
+                singularWord: "dish",
+                pluralWord: "dishes",
+                ruleEnding: "sh",
+                // صحن وشوكة وسكين
+                singularSvg: `<svg class="w-14 h-12" viewBox="0 0 70 50"><circle cx="35" cy="25" r="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.5"/><circle cx="35" cy="25" r="10" fill="#bae6fd"/><path d="M12 12V24M8 12V18C8 20 16 20 16 18V12M12 24V38" stroke="#475569" stroke-width="2" stroke-linecap="round"/><path d="M58 12C55 18 55 24 55 26V38M58 12V38" stroke="#475569" stroke-width="2" stroke-linecap="round"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-8" viewBox="0 0 70 50"><circle cx="35" cy="25" r="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.5"/><circle cx="35" cy="25" r="10" fill="#bae6fd"/><path d="M10 14V36M60 14V36" stroke="#475569" stroke-width="2.5"/></svg>
+                        <svg class="w-9 h-8" viewBox="0 0 70 50"><circle cx="35" cy="25" r="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.5"/><circle cx="35" cy="25" r="10" fill="#bae6fd"/><path d="M10 14V36M60 14V36" stroke="#475569" stroke-width="2.5"/></svg>
+                        <svg class="w-9 h-8" viewBox="0 0 70 50"><circle cx="35" cy="25" r="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.5"/><circle cx="35" cy="25" r="10" fill="#bae6fd"/><path d="M10 14V36M60 14V36" stroke="#475569" stroke-width="2.5"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 5,
+                singularWord: "Fox",
+                pluralWord: "Foxes",
+                ruleEnding: "x",
+                // ثعلب كرتوني برتقالي ظريف
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 64 64"><polygon points="14,14 24,30 10,28" fill="#ea580c"/><polygon points="50,14 40,30 54,28" fill="#ea580c"/><polygon points="16,18 22,28 14,27" fill="#fed7aa"/><polygon points="48,18 42,28 50,27" fill="#fed7aa"/><ellipse cx="32" cy="38" rx="20" ry="16" fill="#f97316"/><path d="M22 38C22 46 32 50 32 50C32 50 42 46 42 38C42 33 37 32 32 32C27 32 22 33 22 38Z" fill="#ffffff"/><circle cx="26" cy="36" r="2.5" fill="#1e293b"/><circle cx="38" cy="36" r="2.5" fill="#1e293b"/><circle cx="32" cy="43" r="2" fill="#1e293b"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><polygon points="14,14 24,30 10,28" fill="#ea580c"/><polygon points="50,14 40,30 54,28" fill="#ea580c"/><ellipse cx="32" cy="38" rx="18" ry="14" fill="#f97316"/><circle cx="26" cy="36" r="2" fill="#1e293b"/><circle cx="38" cy="36" r="2" fill="#1e293b"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><polygon points="14,14 24,30 10,28" fill="#ea580c"/><polygon points="50,14 40,30 54,28" fill="#ea580c"/><ellipse cx="32" cy="38" rx="18" ry="14" fill="#f97316"/><circle cx="26" cy="36" r="2" fill="#1e293b"/><circle cx="38" cy="36" r="2" fill="#1e293b"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 64 64"><polygon points="14,14 24,30 10,28" fill="#ea580c"/><polygon points="50,14 40,30 54,28" fill="#ea580c"/><ellipse cx="32" cy="38" rx="18" ry="14" fill="#f97316"/><circle cx="26" cy="36" r="2" fill="#1e293b"/><circle cx="38" cy="36" r="2" fill="#1e293b"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 6,
+                singularWord: "Potato",
+                pluralWord: "Potatoes",
+                ruleEnding: "o",
+                // حبة بطاطس بنية منقطة
+                singularSvg: `<svg class="w-13 h-10" viewBox="0 0 60 45"><ellipse cx="30" cy="23" rx="26" ry="18" fill="#b45309" stroke="#78350f" stroke-width="1.5"/><circle cx="20" cy="18" r="1.5" fill="#78350f"/><circle cx="38" cy="15" r="1.5" fill="#78350f"/><circle cx="26" cy="28" r="1.5" fill="#78350f"/><circle cx="42" cy="26" r="1.5" fill="#78350f"/><circle cx="15" cy="24" r="1.2" fill="#78350f"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-8" viewBox="0 0 60 45"><ellipse cx="30" cy="23" rx="24" ry="16" fill="#b45309"/><circle cx="22" cy="20" r="1.5" fill="#78350f"/><circle cx="36" cy="24" r="1.5" fill="#78350f"/></svg>
+                        <svg class="w-9 h-8" viewBox="0 0 60 45"><ellipse cx="30" cy="23" rx="24" ry="16" fill="#b45309"/><circle cx="22" cy="20" r="1.5" fill="#78350f"/><circle cx="36" cy="24" r="1.5" fill="#78350f"/></svg>
+                        <svg class="w-9 h-8" viewBox="0 0 60 45"><ellipse cx="30" cy="23" rx="24" ry="16" fill="#b45309"/><circle cx="22" cy="20" r="1.5" fill="#78350f"/><circle cx="36" cy="24" r="1.5" fill="#78350f"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 7,
+                singularWord: "Tomato",
+                pluralWord: "Tomatoes",
+                ruleEnding: "o",
+                // حبة طماطم حمراء نضرة بأوراق خضراء
+                singularSvg: `<svg class="w-12 h-11" viewBox="0 0 60 50"><circle cx="30" cy="28" r="19" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/><ellipse cx="25" cy="22" rx="4" ry="7" fill="#ef4444"/><polygon points="30,12 33,6 30,8 27,6" fill="#15803d"/><polygon points="30,10 38,11 31,13" fill="#16a34a"/><polygon points="30,10 22,11 29,13" fill="#16a34a"/><polygon points="30,10 35,16 30,13" fill="#16a34a"/><polygon points="30,10 25,16 30,13" fill="#16a34a"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-9" viewBox="0 0 60 50"><circle cx="30" cy="28" r="18" fill="#dc2626"/><polygon points="30,10 35,5 30,8 25,5" fill="#15803d"/><polygon points="30,10 38,12 22,12" fill="#16a34a"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 50"><circle cx="30" cy="28" r="18" fill="#dc2626"/><polygon points="30,10 35,5 30,8 25,5" fill="#15803d"/><polygon points="30,10 38,12 22,12" fill="#16a34a"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 50"><circle cx="30" cy="28" r="18" fill="#dc2626"/><polygon points="30,10 35,5 30,8 25,5" fill="#15803d"/><polygon points="30,10 38,12 22,12" fill="#16a34a"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 8,
+                singularWord: "mango",
+                pluralWord: "mangoes",
+                ruleEnding: "o",
+                // حبة مانجو صفراء مائلة للبرتقالي مع غصن أخضر
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 60 55"><path d="M22,12 C34,8 48,16 46,32 C44,46 28,52 18,44 C10,36 12,18 22,12 Z" fill="#f59e0b" stroke="#d97706" stroke-width="1.5"/><path d="M22,12 C28,10 35,14 36,20" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/><ellipse cx="23" cy="8" rx="6" ry="3" fill="#15803d" transform="rotate(-30 23 8)"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-9" viewBox="0 0 60 55"><path d="M22,12 C34,8 48,16 46,32 C44,46 28,52 18,44 C10,36 12,18 22,12 Z" fill="#f59e0b"/><ellipse cx="23" cy="8" rx="5" ry="2.5" fill="#15803d"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 55"><path d="M22,12 C34,8 48,16 46,32 C44,46 28,52 18,44 C10,36 12,18 22,12 Z" fill="#f59e0b"/><ellipse cx="23" cy="8" rx="5" ry="2.5" fill="#15803d"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 55"><path d="M22,12 C34,8 48,16 46,32 C44,46 28,52 18,44 C10,36 12,18 22,12 Z" fill="#f59e0b"/><ellipse cx="23" cy="8" rx="5" ry="2.5" fill="#15803d"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 9,
+                singularWord: "brush",
+                pluralWord: "brushes",
+                ruleEnding: "sh",
+                // فرشاة رسم بمقبض بني ورأس أزرق
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 60 60"><line x1="12" y1="52" x2="35" y2="29" stroke="#b45309" stroke-width="4.5" stroke-linecap="round"/><rect x="33" y="25" width="8" height="5" transform="rotate(45 35 27)" fill="#94a3b8"/><path d="M38 24 C42 16 52 10 52 10 C52 10 46 20 38 24 Z" fill="#0284c7"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1 justify-center">
+                        <svg class="w-8 h-10" viewBox="0 0 60 60"><line x1="12" y1="52" x2="35" y2="29" stroke="#b45309" stroke-width="4"/><path d="M38 24 C42 16 52 10 52 10 C52 10 46 20 38 24 Z" fill="#0284c7"/></svg>
+                        <svg class="w-8 h-10" viewBox="0 0 60 60"><line x1="12" y1="52" x2="35" y2="29" stroke="#b45309" stroke-width="4"/><path d="M38 24 C42 16 52 10 52 10 C52 10 46 20 38 24 Z" fill="#0284c7"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 10,
+                singularWord: "bus",
+                pluralWord: "buses",
+                ruleEnding: "s",
+                // حافلة ثانية كما هي مكررة تماماً في البوستر الأصلي
+                singularSvg: `<svg class="w-14 h-11" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-2 items-center">
+                        <svg class="w-11 h-8" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>
+                        <svg class="w-11 h-8" viewBox="0 0 70 50"><rect x="5" y="10" width="58" height="28" rx="7" fill="#facc15" stroke="#854d0e" stroke-width="2"/><circle cx="18" cy="38" r="5" fill="#1e293b"/><circle cx="50" cy="38" r="5" fill="#1e293b"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            },
+            {
+                id: 11,
+                singularWord: "dress",
+                pluralWord: "dresses",
+                ruleEnding: "ss",
+                // فستان بنفسجي فاتح للأطفال
+                singularSvg: `<svg class="w-12 h-12" viewBox="0 0 60 60"><path d="M22 12 Q30 18 38 12 L41 24 L35 25 L45 52 L15 52 L25 25 L19 24 Z" fill="#c084fc" stroke="#7e22ce" stroke-width="1.5"/><circle cx="30" cy="20" r="1.5" fill="#ffffff"/></svg>`,
+                pluralSvg: `
+                    <div class="flex gap-1">
+                        <svg class="w-9 h-9" viewBox="0 0 60 60"><path d="M22 12 Q30 18 38 12 L41 24 L35 25 L45 52 L15 52 L25 25 L19 24 Z" fill="#c084fc" stroke="#7e22ce" stroke-width="1.2"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 60"><path d="M22 12 Q30 18 38 12 L41 24 L35 25 L45 52 L15 52 L25 25 L19 24 Z" fill="#c084fc" stroke="#7e22ce" stroke-width="1.2"/></svg>
+                        <svg class="w-9 h-9" viewBox="0 0 60 60"><path d="M22 12 Q30 18 38 12 L41 24 L35 25 L45 52 L15 52 L25 25 L19 24 Z" fill="#c084fc" stroke="#7e22ce" stroke-width="1.2"/></svg>
+                    </div>`,
+                showAnswerByDefault: false
+            }
+        ];
+
+        let answersRevealed = false;
+        let isReadingQueue = false;
+        let readingQueueTimeout = null;
+        const pointerHand = document.getElementById('pointerHand');
+        const statusBadge = document.getElementById('statusBadge');
+
+        // بناء محتوى الجدول تلقائياً من البيانات
+        function renderTable() {
+            const table = document.getElementById('wordsTable');
+            table.innerHTML = '';
+
+            lessonItems.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-2 hover:bg-amber-50/40 transition-colors";
+                row.id = `row-${item.id}`;
+
+                // تجهيز الكلمة مع تلوين es في الجمع
+                const basePluralPart = item.pluralWord.slice(0, -2);
+                const esPart = item.pluralWord.slice(-2);
+
+                row.innerHTML = `
+                    <!-- قسم الجمع (Plural) -->
+                    <div class="border-l-2 border-slate-700 p-2 sm:p-3 flex items-center justify-between gap-2">
+                        <div class="flex-shrink-0 flex items-center justify-center min-w-[70px]">
+                            ${item.pluralSvg}
+                        </div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <!-- إذا كان محلول في البوستر يعرض الكلمة مباشرة، وإلا نقاط أو الكلمة حسب حالة الزر -->
+                            <div id="word-p-${item.id}" 
+                                 onclick="speakEnglishWord('${item.pluralWord}', 'word-p-${item.id}')"
+                                 class="en-font font-bold text-xl sm:text-3xl text-slate-900 cursor-pointer p-1.5 rounded-xl border border-transparent hover:border-amber-300 transition-all select-none">
+                                ${item.showAnswerByDefault || answersRevealed ? 
+                                    `${basePluralPart}<span class="es-highlight">${esPart}</span>` : 
+                                    `<span class="tracking-widest text-slate-400 font-normal">................</span>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- قسم المفرد (Singular) - الآن في العمود الموضح بالصورة -->
+                    <div class="p-2 sm:p-3 flex items-center justify-between gap-2 flex-row">
+                        <div class="flex-shrink-0 flex items-center justify-center w-14 h-12">
+                            ${item.singularSvg}
+                        </div>
+                        <div id="word-s-${item.id}" 
+                             onclick="speakEnglishWord('${item.singularWord}', 'word-s-${item.id}')"
+                             class="en-font flex-1 text-center font-bold text-xl sm:text-3xl text-slate-900 cursor-pointer p-1.5 rounded-xl border border-transparent hover:border-amber-300 transition-all select-none">
+                            ${item.singularWord}
+                        </div>
+                    </div>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        /* ========================================================
+           محرك النطق الصوتي الإنجليزي حصراً ومزامنة الإصبع التفاعلي
+        ======================================================== */
+        function getEnglishVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            // تفضيل الأصوات الإنجليزية الطبيعية للأطفال أو المعلمين
+            return voices.find(v => (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel')) && v.lang.startsWith('en'))
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0];
+        }
+
+        // وضع الإصبع التعليمي فوق الكلمة بدقة وثبات تام دون التحرك على الحروف
+        function positionFingerAtElement(elementId) {
+            const targetEl = document.getElementById(elementId);
+            if (!targetEl) return;
+
+            const rect = targetEl.getBoundingClientRect();
+
+            // تثبيت مؤشر الإصبع أسفل منتصف الكلمة بالكامل بدقة
+            const fingerX = rect.left + (rect.width / 2);
+            const fingerY = rect.bottom + 8; // يثبت تحت الكلمة مشيراً إليها لأعلى
+
+            pointerHand.style.left = `${fingerX}px`;
+            pointerHand.style.top = `${fingerY}px`;
+            pointerHand.style.opacity = '1';
+            pointerHand.classList.add('tapping');
+
+            // إضاءة خلفية للكلمة دون اهتزاز الحروف
+            document.querySelectorAll('.reading-active').forEach(el => el.classList.remove('reading-active'));
+            targetEl.classList.add('reading-active');
+        }
+
+        function removeFinger() {
+            pointerHand.style.opacity = '0';
+            pointerHand.classList.remove('tapping');
+            document.querySelectorAll('.reading-active').forEach(el => el.classList.remove('reading-active'));
+            statusBadge.classList.add('hidden');
+        }
+
+        function speakEnglishWord(word, elementId) {
+            if (!window.speechSynthesis) return;
+
+            // إيقاف أي قراءة مستمرة
+            window.speechSynthesis.cancel();
+            clearTimeout(readingQueueTimeout);
+
+            // توجيه الإصبع للكلمة
+            positionFingerAtElement(elementId);
+            statusBadge.classList.remove('hidden');
+            statusBadge.innerHTML = `🔊 نطق الكلمة الإنجليزية: <span class="en-font font-bold text-base">${word}</span>`;
+
+            // نطق الكلمة الإنجليزية فقط بوضوح
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85; // سرعة هادئة وتعليمية مناسبة للطلاب
+            utterance.pitch = 1.05; // نبرة مرحة للأطفال
+
+            const engVoice = getEnglishVoice();
+            if (engVoice) utterance.voice = engVoice;
+
+            utterance.onend = () => {
+                if (!isReadingQueue) {
+                    setTimeout(removeFinger, 600);
+                }
+            };
+
+            utterance.onerror = () => {
+                removeFinger();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        /* ========================================================
+           تشغيل الدرس كاملاً بالترتيب (مفرد ثم جمع الكلمة)
+        ======================================================== */
+        async function playWholeLesson() {
+            if (isReadingQueue) {
+                stopVoicePlayback();
+                return;
+            }
+
+            // إظهار الحلول تلقائياً أثناء القراءة الكاملة لكي ينطق الكلمات المجموعة
+            if (!answersRevealed) {
+                toggleAllAnswers(true);
+            }
+
+            isReadingQueue = true;
+            const playBtn = document.getElementById('btnPlayAll');
+            playBtn.innerHTML = `<span>⏹ إيقاف القراءة الكاملة</span>`;
+            playBtn.classList.replace('bg-emerald-600', 'bg-rose-600');
+            playBtn.classList.replace('hover:bg-emerald-700', 'hover:bg-rose-700');
+
+            for (let i = 0; i < lessonItems.length; i++) {
+                if (!isReadingQueue) break;
+                const item = lessonItems[i];
+
+                // نطق المفرد
+                await playSingleStep(`word-s-${item.id}`, item.singularWord);
+                if (!isReadingQueue) break;
+                await sleep(500);
+
+                // نطق الجمع
+                await playSingleStep(`word-p-${item.id}`, item.pluralWord);
+                if (!isReadingQueue) break;
+                await sleep(750);
+            }
+
+            stopVoicePlayback();
+        }
+
+        function playSingleStep(elementId, text) {
+            return new Promise((resolve) => {
+                positionFingerAtElement(elementId);
+                statusBadge.classList.remove('hidden');
+                statusBadge.innerHTML = `🔊 درس ناطق: <span class="en-font font-bold text-base">${text}</span>`;
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.82;
+                utterance.pitch = 1.05;
+
+                const engVoice = getEnglishVoice();
+                if (engVoice) utterance.voice = engVoice;
+
+                utterance.onend = () => {
+                    resolve();
+                };
+                utterance.onerror = () => {
+                    resolve();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => {
+                readingQueueTimeout = setTimeout(resolve, ms);
+            });
+        }
+
+        function stopVoicePlayback() {
+            isReadingQueue = false;
+            clearTimeout(readingQueueTimeout);
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            removeFinger();
+
+            const playBtn = document.getElementById('btnPlayAll');
+            playBtn.innerHTML = `
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>قراءة الدرس كاملاً</span>`;
+            playBtn.classList.replace('bg-rose-600', 'bg-emerald-600');
+            playBtn.classList.replace('hover:bg-rose-700', 'hover:bg-emerald-700');
+        }
+
+        // إظهار أو إخفاء حلول الجمع المتبقية بالنقاط
+        function toggleAllAnswers(forceShow = null) {
+            if (forceShow !== null) {
+                answersRevealed = forceShow;
+            } else {
+                answersRevealed = !answersRevealed;
+            }
+
+            document.getElementById('btnAnswersText').innerText = answersRevealed ? "إخفاء حلول الجمع" : "إظهار حلول الجمع";
+            renderTable();
+        }
+
+        // تحديث الأصوات وإعادة التهيئة
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                getEnglishVoice();
+            };
+        }
+
+        // تحديث مكان الإصبع عند تغيير حجم الشاشة أثناء النطق
+        window.addEventListener('resize', () => {
+            const activeEl = document.querySelector('.reading-active');
+            if (activeEl) {
+                positionFingerAtElement(activeEl.id);
+            }
+        });
+
+        // بدء تشغيل وتوليد الجدول عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+        });
+    </script>
+</body>
+</html>
